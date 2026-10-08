@@ -34,7 +34,7 @@ test('winning celebrates and undo clears the victory state',async({page})=>{
   await expect(page.locator('#message')).not.toHaveAttribute('data-tone','error');
 });
 test('active connectors animate and reduced motion keeps them still',async({page})=>{
-  await page.getByRole('tab',{name:/Search in rings/}).click();
+  await page.locator('#search-lab').scrollIntoViewIfNeeded();
   await expect(page.locator('canvas')).toBeVisible();
   await move(page,'cot');
   const before=await fingerprint(page);

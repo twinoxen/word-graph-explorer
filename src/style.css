@@ -174,3 +174,33 @@ footer{margin-top:55px;padding:22px 4px;border-top:1px solid #304239;color:#90a6
 @media(max-width:760px){header{padding:0 20px;height:72px}header nav{gap:16px;font-size:11px}header nav a:last-child{display:none}main{padding:32px 20px 20px}.intro{margin-bottom:32px}.intro p{font-size:14px}.hero-art{display:none}h1{font-size:40px;letter-spacing:-1.9px}.panel{padding:22px 20px}.game-layout{grid-template-columns:1fr;gap:26px}.challenge-column{border-right:0;border-bottom:1px solid #344a40;padding:0 0 22px}.endpoints{justify-content:center;gap:40px;padding:24px 0 0}.tip{margin-top:18px;padding-top:18px}.tip p{font-size:12px}.challenge-footnote{font-size:10px;max-width:none;margin-top:12px}.game-label{font-size:8px}.panel-heading h2{font-size:16px}.input-row .primary{font-size:12px;padding:12px}.input-row input{font-size:14px;padding:13px}.game-bottom{flex-direction:column;font-size:10px;gap:12px}.learning{margin-top:60px}.learning-intro{flex-direction:column;align-items:flex-start;margin:0 0 25px}.learning-intro h2{font-size:29px;letter-spacing:-1px}.learning-intro p{font-size:12px}.learning-intro p br{display:none}.learning-meta{align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:14px}.learning-meta a{display:none}.lesson-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.lesson-tab{padding:12px 10px}.lesson-tab strong{font-size:11px}.lesson-tab small{font-size:9px}.lesson-number{width:24px;height:24px;font-size:10px}.lesson-panel{grid-template-columns:1fr;border-radius:16px}.lesson-copy{padding:28px 24px}.lesson-copy h3{font-size:27px}.experiment{border-left:0;border-top:1px solid #d2dcc9;padding:28px 24px}.experiment-label{font-size:8px}.mini-graph{max-height:260px}.parent-cards b{font-size:21px}.parent-trace strong{font-size:12px}.cost-row strong{font-size:25px}.cost-row small{max-width:165px}.size-label{margin-top:28px}.graph-heading{align-items:flex-start}.stats{padding:12px}.stats strong{font-size:18px}.legend{gap:12px}#search-lab .graph{height:400px}footer{margin-top:36px;font-size:9px}}
 
 @media(max-width:760px){.challenge-column .tip,.challenge-footnote{display:none}.mobile-rule{display:block;color:#bbceba;font-size:12px;line-height:1.7;margin:18px 0 0}.challenge-column{padding-bottom:18px}.game-layout{gap:20px}.intro h1{font-size:36px}.intro{margin-bottom:24px}.game .panel-heading{padding-bottom:18px;margin-bottom:20px}.game .panel-heading h2{font-size:14px}.endpoints{padding-top:20px}.ladder-column #ladder{margin-bottom:14px}.game-label{padding:6px 9px}}
+
+/* Animated explanations and the independent connection map. */
+.animation-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.animation-controls button{font-size:11px;white-space:normal}
+.animation-caption{font-size:13px;line-height:1.8;color:#38552d;background:#f3f6e9;border:1px solid #c3d2b5;border-radius:9px;padding:14px 16px;min-height:82px;margin:20px 0 0}
+#animated-edge{stroke:#9bb08c;stroke-dasharray:1;stroke-dashoffset:0}
+#edges-stage[data-frame="0"] #animated-edge,#edges-stage[data-frame="1"] #animated-edge{opacity:.25}
+#edges-stage[data-frame="1"] .changed-letter{animation:letter-highlight 1.2s ease-in-out}
+#edges-stage[data-frame="2"] #animated-edge{stroke:#547a35;stroke-width:4;animation:edge-draw 1s ease-out}
+#edges-stage[data-frame="3"] #animated-edge{stroke:#547a35;stroke-width:4}
+.mini-node.active-node rect{fill:#c5e7a6;stroke:#4e7337;stroke-width:3;transition:fill .3s,stroke .3s}
+.demo-rings .active-layer{background:#d2e5bc;border-color:#557c35;box-shadow:0 0 0 1px #a8c788;transition:background .35s}
+.queue-chip-enter{animation:queue-in .45s ease-out}
+.parent-trace strong>span{font:inherit;letter-spacing:inherit;color:#79916b;border-radius:4px;padding:4px 2px}
+.parent-trace strong>span.traced{color:#2f4f24;background:#c1dca4}
+.parent-trace strong>span.trace-current{outline:2px solid #6a8d4d;animation:letter-highlight .8s ease-out}
+.patterns code.active-pattern{background:#50713b;color:#f6f8ec;border-color:#50713b;transform:translateY(-4px);transition:transform .3s,background .3s}
+.bucket-example{background:#eff3e4;border:1px solid #bdcdb0;border-radius:9px;padding:15px;margin-top:3px}
+.bucket-example>span{font-size:11px;line-height:1.7;color:#547147;display:block}
+.bucket-words{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;min-height:31px}
+.bucket-words code{background:#d9e9c6;color:#35542c;border-color:#a5be8d;font-size:12px}
+#search-lab{margin-top:54px;scroll-margin-top:25px}
+.learning{margin-top:62px}
+.lesson-tab strong{font-size:11px}
+.lesson-tab small{line-height:1.6;font-size:9px}
+@keyframes edge-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes letter-highlight{0%,100%{box-shadow:0 0 0 0 #6a8d4d00}50%{box-shadow:0 0 0 5px #6a8d4d44}}
+@keyframes queue-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:760px){header nav{gap:12px}header nav a[href="#search-lab"]{display:none}.lesson-tab{align-items:flex-start}.lesson-tab strong{font-size:10px}.lesson-tab small{font-size:8px}.animation-controls{gap:7px}.animation-controls button{font-size:10px;padding:11px 12px}.animation-caption{font-size:12px;min-height:88px}.parent-trace strong>span{padding:3px 1px}#search-lab{margin-top:40px}.learning{margin-top:48px}}
+@media(prefers-reduced-motion:reduce){#animated-edge,.changed-letter,.queue-chip-enter,.trace-current{animation:none!important}.patterns code.active-pattern{transform:none}}

@@ -13,14 +13,14 @@ npm run dev
 
 ## Play first, explore afterward
 
-The game leads the page: choose a challenge, change one letter per move, and build a ladder to the goal. The learning section underneath is optional and has four independent modules:
+The game leads the page: choose a challenge, change one letter per move, and build a ladder to the goal. An independent connection map follows the game, with its own BFS playback controls. The optional learning section comes after the map and has four independent modules:
 
 1. **Words become a graph:** predict a legal connection, then explore nodes and edges.
-2. **Search in rings:** predict FIFO order and step through a six-word queue. The full graph and BFS playback for the active puzzle live here.
+2. **Search in rings:** predict FIFO order and step through a six-word queue. The search animation and queue walkthrough use an independent teaching example.
 3. **Shortest route:** follow recorded parents backward, reverse the route, and optionally compare it with the active puzzle.
 4. **Scale it up:** adjust dictionary size to compare character-check bounds with indexed bucket lookups. Explain indexing costs, candidate processing, search complexity and snapshot storage.
 
-Each module gives feedback on predictions and reveals an explanation after a correct answer. Lesson examples do not modify the game. The comparison explicitly reveals the puzzle solution and clears on a new puzzle or move. Progress lasts for the current page session. Tabs support arrow keys, Home and End. Graph code loads only when the search lesson is opened, and drawing pauses when hidden.
+Each module gives feedback on predictions and reveals an explanation after a correct answer. Lesson examples do not modify the game. The comparison explicitly reveals the puzzle solution and clears on a new puzzle or move. Progress lasts for the current page session. Tabs support arrow keys, Home and End. Graph code loads when the map approaches the viewport. Lesson selection does not hide the map or control its playback.
 
 The scaling module shows operation counts rather than timing measurements. Wildcard indexing is a proposed optimization; the actual game still scans the curated vocabulary.
 
@@ -55,6 +55,8 @@ Import `twinoxen/word-graph-explorer` in Vercel. Select Vite, leave the root dir
 - `src/data.ts`: curated vocabulary and puzzle presets.
 - `src/main.ts`: game state, DOM and algorithm playback controls.
 - `src/graph.ts`: p5 rendering and node inspection.
+- `src/lessons.ts`: independent interactive teaching examples and full-sentence explanations.
+- `src/lesson-animation.ts`: play, pause, step, reset and reduced-motion behavior for teaching animations.
 - `tests/engine.test.ts`: graph and game rule checks.
 
 Every legal move has equal cost. BFS processes all nodes at distance k before distance k+1, so the first goal reached has the fewest transformations. This small implementation scans the vocabulary to find neighbors: O(V²L) search work, where L is word length. Search snapshots add O(V²) storage in the worst case. Larger dictionaries should use wildcard neighbor indexing and incremental snapshots.
@@ -69,3 +71,5 @@ Browser regression tests:
 npx playwright install chromium
 npm run test:e2e
 ```
+
+Every explainer slide includes a replayable visual walkthrough and an interactive prediction. Visitors can play, pause, reset, or step through edge creation, FIFO queue traversal, backward parent tracing followed by route reversal, and wildcard bucket lookup followed by candidate deduplication. Explanatory headings, captions, feedback and paragraphs use complete sentences. Changing slides or hiding the page pauses teaching animations. Reduced-motion visitors can step manually or show the final state without animated transitions.

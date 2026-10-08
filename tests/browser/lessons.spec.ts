@@ -26,8 +26,7 @@ test('adjacency lesson gives feedback for both predictions without changing the 
 });
 
 test('FIFO lesson steps a real queue and resets without affecting the player',async({page})=>{
-  await page.getByRole('tab',{name:/Search in rings/}).click();
-  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByRole('tab',{name:/BFS explores/}).click();
   await page.getByRole('button',{name:'COT',exact:true}).click();
   await expect(page.locator('#bfs-feedback')).toHaveAttribute('data-correct','false');
   await page.getByRole('button',{name:'BAT',exact:true}).click();
@@ -43,7 +42,7 @@ test('FIFO lesson steps a real queue and resets without affecting the player',as
 });
 
 test('shortest-path lesson explains parents and compares the active puzzle only on request',async({page})=>{
-  await page.getByRole('tab',{name:/Shortest route/}).click();
+  await page.getByRole('tab',{name:/Parents recover/}).click();
   await expect(page.locator('#lesson-solution')).toBeHidden();
   await page.getByRole('button',{name:'Follow the recorded parents'}).click();
   await expect(page.locator('#parents-feedback')).toHaveAttribute('data-correct','true');
@@ -55,34 +54,33 @@ test('shortest-path lesson explains parents and compares the active puzzle only 
 });
 
 test('scaling lesson distinguishes lookup work from building an index',async({page})=>{
-  await page.getByRole('tab',{name:/Scale it up/}).click();
+  await page.getByRole('tab',{name:/An index reduces/}).click();
   await page.locator('#dictionary-size').fill('10000');
   await expect(page.locator('#scan-count')).toHaveText('40,000');
   await expect(page.locator('#pattern-count')).toHaveText('4');
   await page.getByRole('button',{name:'Reuse a wildcard index'}).click();
   await expect(page.locator('#scale-feedback')).toHaveAttribute('data-correct','true');
   await expect(page.locator('#scale-explanation')).toContainText('build');
-  await page.getByRole('tab',{name:/Words become a graph/}).click();
+  await page.getByRole('tab',{name:/Words form a graph/}).click();
   await expect(page.locator('#lesson-edges')).toBeVisible();
 });
 
-test('keyboard navigation changes lessons and leaving search pauses playback',async({page})=>{
+test('keyboard navigation changes lessons while the map keeps its own playback state',async({page})=>{
   await page.locator('#tab-0').focus();await page.keyboard.press('ArrowRight');
   await expect(page.locator('#tab-1')).toBeFocused();
   await expect(page.locator('#lesson-bfs')).toBeVisible();
   await page.locator('#speed').selectOption('1000');await page.locator('#play').click();
   await expect(page.locator('#play')).toContainText('Pause');
-  await page.getByRole('tab',{name:/Shortest route/}).click();
+  await page.getByRole('tab',{name:/Parents recover/}).click();
+  await expect(page.locator('#play')).toContainText('Pause');
+  await page.locator('#play').click();
   await expect(page.locator('#play')).toContainText('Play BFS');
-  const current=await page.locator('#current').textContent();
-  await page.waitForTimeout(1100);
-  await expect(page.locator('#current')).toHaveText(current!);
 });
 
 test('mobile lessons keep their controls usable without page overflow',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await expect(page.locator('#next')).toBeInViewport();
-  for(const name of [/Words become a graph/,/Search in rings/,/Shortest route/,/Scale it up/]){
+  for(const name of [/Words form a graph/,/BFS explores/,/Parents recover/,/An index reduces/]){
     await page.getByRole('tab',{name}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
