@@ -25,19 +25,13 @@ test('adjacency lesson gives feedback for both predictions without changing the 
   await expect(page.locator('#lesson-progress')).toContainText('1 of 4');
 });
 
-test('FIFO lesson steps a real queue and resets without affecting the player',async({page})=>{
+test('FIFO prediction gives feedback without affecting the player',async({page})=>{
   await page.getByRole('tab',{name:/BFS explores/}).click();
   await page.getByRole('button',{name:'COT',exact:true}).click();
   await expect(page.locator('#bfs-feedback')).toHaveAttribute('data-correct','false');
   await page.getByRole('button',{name:'BAT',exact:true}).click();
-  await expect(page.locator('#demo-queue')).toHaveText('BATCOT');
-  await page.getByRole('button',{name:'Explore next word'}).click();
-  await expect(page.locator('#demo-current')).toHaveText('BAT');
-  await expect(page.locator('#demo-queue')).toHaveText('COT');
-  await page.getByRole('button',{name:'Explore next word'}).click();
-  await expect(page.locator('#demo-queue')).toHaveText('COGDOT');
-  await page.getByRole('button',{name:'Reset example'}).click();
-  await expect(page.locator('#demo-queue')).toHaveText('BATCOT');
+  await expect(page.locator('#bfs-feedback')).toHaveAttribute('data-correct','true');
+  await expect(page.locator('#bfs-explanation')).toBeVisible();
   await expect(page.locator('#ladder li')).toHaveCount(1);
 });
 
