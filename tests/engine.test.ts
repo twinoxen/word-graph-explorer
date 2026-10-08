@@ -1,0 +1,18 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {adjacent,search,shortestPath,validateMove} from '../src/engine.ts';
+const words=['cat','cot','cog','dog','dot','dat','bat','bad','bed','sun'];
+test('an edge changes exactly one letter with equal lengths',()=>{assert.equal(adjacent('cat','cot'),true);for(const b of ['cat','dog','cats',''])assert.equal(adjacent('cat',b),false)});
+test('BFS returns a shortest route with valid edges',()=>{const path=shortestPath('cat','dog',words)!;assert.equal(path.length,4);assert.equal(path[0],'cat');assert.equal(path.at(-1),'dog');path.slice(1).forEach((w,i)=>assert.ok(adjacent(path[i],w)))});
+test('disconnected goal returns null',()=>assert.equal(shortestPath('cat','sun',words),null));
+test('equal endpoints return zero moves',()=>assert.deepEqual(shortestPath('cat','cat',words),['cat']));
+test('missing endpoints return null',()=>assert.equal(shortestPath('cat','zzz',words),null));
+test('BFS visits each word once despite cycles',()=>{const result=search('cat','sun',words);const visited=result.snapshots.at(-1)!.visited;assert.equal(visited.length,new Set(visited).size);assert.equal(visited.length,9);assert.equal(result.path,null)});
+test('input normalization accepts capital letters and spaces',()=>assert.equal(validateMove('cat',' COT ',words),null));
+test('rejects unknown, identical and multi-letter moves',()=>{for(const w of ['zzz','cat','dog','cats',''])assert.ok(validateMove('cat',w,words))});
+test('hint recomputes from current word',()=>{const path=shortestPath('bed','dog',words)!;assert.equal(path[0],'bed');assert.ok(adjacent('bed',path[1]))});
+test('snapshots start with the source in the queue and end on goal',()=>{const result=search('cat','dog',words);assert.deepEqual(result.snapshots[0].queue,['cat']);assert.equal(result.snapshots.at(-1)!.current,'dog');assert.equal(result.snapshots.at(-1)!.done,true)});
+import {WORDS,PUZZLES} from '../src/data.ts';
+import {component} from '../src/engine.ts';
+test('every preset has a valid complete route',()=>{for(const p of PUZZLES){const route=shortestPath(p.start,p.goal,WORDS);assert.ok(route,p.label);route.slice(1).forEach((w,i)=>assert.ok(adjacent(route[i],w)));}});
+test('component includes all intermediates and goal even beyond 50 words',()=>{const all=component('cat',WORDS);assert.ok(all.length>50);for(const word of shortestPath('cat','dog',WORDS)!)assert.ok(all.includes(word));});

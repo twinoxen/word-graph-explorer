@@ -1,0 +1,50 @@
+import './style.css';
+import {WORDS,PUZZLES} from './data';
+import {adjacent,normalize,search,shortestPath,validateMove,type SearchResult} from './engine';
+import {mountGraph} from './graph';
+const app=document.querySelector<HTMLDivElement>('#app')!;
+app.innerHTML=`
+<header><a class="brand" href="./"><span class="brand-icon">w.</span> word graph <b>explorer</b></a><span class="header-note">A PLAYGROUND FOR CURIOUS MINDS</span><a href="https://github.com/twinoxen/word-graph-explorer" target="_blank" rel="noreferrer">Source ↗</a></header>
+<main><div class="intro"><div><span class="eyebrow">WORDS CONNECT. IDEAS FOLLOW.</span><h1>One letter. <span>Many possibilities.</span></h1><p>Find your way between two words. Watch a graph turn the puzzle into a path.</p></div><span class="badge">WORD LADDER × GRAPH THEORY</span></div>
+<div class="workspace"><section class="panel game"><div class="panel-heading"><span><i class="dot green"></i> THE GAME</span><span class="muted">01</span></div>
+<label class="field-label" for="puzzle">Choose a challenge</label><select id="puzzle">${PUZZLES.map((p,i)=>`<option value="${i}">${p.label} · ${p.difficulty}</option>`).join('')}<option value="custom">Custom words</option></select>
+<form id="custom" hidden><div class="custom-fields"><label>Start<input id="custom-start" maxlength="4" placeholder="COLD" required></label><label>Goal<input id="custom-goal" maxlength="4" placeholder="WARM" required></label></div><button class="secondary">Set puzzle</button><p id="custom-error" role="status"></p></form>
+<div class="endpoints"><div><span class="field-label">START</span><strong id="start"></strong></div><span class="endpoint-arrow">→</span><div><span class="field-label">GOAL</span><strong id="goal"></strong></div></div>
+<div class="divider"></div><div class="row"><h2>Your ladder</h2><span id="moves" class="muted"></span></div><ol id="ladder"></ol>
+<form id="move-form"><label class="field-label" for="next">Your next word</label><div class="input-row"><input id="next" autocomplete="off" spellcheck="false" placeholder="Change one letter…" aria-describedby="message"><button class="primary" aria-label="Submit word">↵</button></div></form><p id="message" class="message" role="status" aria-live="polite"></p>
+<div class="actions"><button id="hint" class="secondary">✧ Next-word hint</button><button id="reveal" class="secondary">Reveal shortest path</button></div><div id="answer" hidden class="answer"></div><div class="small-actions"><button id="undo">← Undo move</button><button id="restart">↻ Start over</button></div>
+<div class="tip"><span>THE RULE</span><p>Change exactly one letter each turn. Every step must be a word in our curated vocabulary.</p></div></section>
+<section class="panel visualization"><div class="panel-heading"><span><i class="dot purple"></i> THE CONNECTIONS</span><span class="muted">02</span></div><div class="row graph-heading"><div><h2>See the search unfold.</h2><p class="muted">Every line is a valid one-letter change.</p></div><span class="badge">BREADTH-FIRST SEARCH</span></div>
+<div class="legend"><span><i class="dot green"></i>Your path</span><span><i class="dot amber"></i>Shortest path</span><span><i class="dot purple"></i>Queued</span><span><i class="dot blue"></i>Explored</span></div><div id="graph" class="graph"></div><p id="graph-note" class="graph-note"></p>
+<div class="search-controls"><button id="play" class="primary">▶ Play BFS</button><button id="step" class="secondary">Step →</button><button id="reset-search" class="secondary" aria-label="Reset BFS">↻ Reset</button><label class="speed">Speed <select id="speed"><option value="1000">Slow</option><option value="450" selected>Normal</option><option value="100">Fast</option></select></label></div>
+<div class="stats"><div><span>CURRENT WORD</span><strong id="current">—</strong></div><div><span>EXPLORED</span><strong id="visited">0</strong></div><div><span>DEPTH</span><strong id="depth">0</strong></div></div><div class="queue"><span class="field-label">FIFO QUEUE</span><div id="queue"></div></div><p id="search-message" class="search-message" aria-live="polite"></p><p id="inspector" class="muted">Click a word to inspect its neighbors.</p></section></div>
+<footer><span>Small changes. Unexpected connections.</span><span>BFS explores one distance layer at a time, finding a path with the fewest moves.</span></footer></main>`;
+const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
+let start='cat',goal='dog',player=[start],solution:string[]=[],result:SearchResult=search(start,goal,WORDS),index=0,timer:ReturnType<typeof setInterval>|null=null,selected:string|null=null;
+function pause(){if(timer!==null)clearInterval(timer);timer=null;el('play').textContent='▶ Play BFS';}
+function message(text:string){el('message').textContent=text;}
+function render(){
+  el('start').textContent=start.toUpperCase();el('goal').textContent=goal.toUpperCase();el('moves').textContent=`${player.length-1} moves`;
+  el('ladder').replaceChildren(...player.map((word,i)=>{const li=document.createElement('li');const count=document.createElement('span');count.textContent=String(i).padStart(2,'0');const text=document.createElement('strong');text.textContent=word.toUpperCase();li.append(count,text);if(i===player.length-1){const tag=document.createElement('em');tag.textContent=word===goal?'FINISHED':'CURRENT';li.append(tag);}return li;}));
+  const won=player.at(-1)===goal;(el('next') as HTMLInputElement).disabled=won;(el('hint')as HTMLButtonElement).disabled=won;(el('undo')as HTMLButtonElement).disabled=player.length===1;
+  const snap=result.snapshots[index];el('current').textContent=snap.current?.toUpperCase()||'—';el('visited').textContent=String(snap.visited.length);el('depth').textContent=String(snap.depth);
+  el('queue').replaceChildren(...snap.queue.map(w=>{const chip=document.createElement('code');chip.textContent=w.toUpperCase();return chip;}));if(!snap.queue.length)el('queue').textContent='Queue empty';
+  (el('step')as HTMLButtonElement).disabled=snap.done;(el('play')as HTMLButtonElement).disabled=snap.done;
+  el('search-message').textContent=snap.done?(result.path?`Goal reached in ${result.path.length-1} moves. Follow the gold route.`:'Search complete: no route exists in this vocabulary.'):index===0?'Ready when you are. Play or step to explore the graph.':`Explore ${snap.current?.toUpperCase()}: add unseen neighbors to the back of the queue.`;
+  el('graph-note').textContent=el('graph').dataset.count||'Nearby words are shown. Scroll to explore the graph.';
+}
+function resetSearch(){pause();result=search(start,goal,WORDS);index=0;solution=[];el('answer').hidden=true;render();}
+function newPuzzle(a:string,b:string){pause();start=a;goal=b;player=[start];selected=null;resetSearch();message(start===goal?'Already at the goal — zero moves needed.':'Your first move is waiting.');if(start===goal)(el('next')as HTMLInputElement).disabled=true;}
+function step(){if(index<result.snapshots.length-1)index++;if(result.snapshots[index].done){pause();solution=result.path||[];}render();}
+el('move-form').addEventListener('submit',event=>{event.preventDefault();const input=el<HTMLInputElement>('next');const error=validateMove(player.at(-1)!,input.value,WORDS);if(error){message(error);return;}player.push(normalize(input.value));input.value='';message(player.at(-1)===goal?`You made it! ${player.length-1} moves. Reveal the shortest path to compare.`:'Valid move. Keep connecting.');render();});
+el('hint').onclick=()=>{const path=shortestPath(player.at(-1)!,goal,WORDS);message(path&&path.length>1?`Try ${path[1].toUpperCase()} — ${path.length-1} moves remain on a shortest route.`:'No route to the goal from here in this vocabulary.');};
+el('reveal').onclick=()=>{solution=result.path||[];el('answer').hidden=false;el('answer').textContent=result.path?`${result.path.map(w=>w.toUpperCase()).join(' → ')} · ${result.path.length-1} moves`:'No route exists in this vocabulary.';render();};
+el('undo').onclick=()=>{if(player.length>1)player.pop();message('Move undone. Try another connection.');render();};
+el('restart').onclick=()=>newPuzzle(start,goal);
+el('puzzle').addEventListener('change',()=>{const value=el<HTMLSelectElement>('puzzle').value;el('custom').hidden=value!=='custom';if(value!=='custom'){const p=PUZZLES[Number(value)];newPuzzle(p.start,p.goal);}});
+el('custom').addEventListener('submit',event=>{event.preventDefault();const a=normalize(el<HTMLInputElement>('custom-start').value),b=normalize(el<HTMLInputElement>('custom-goal').value);if(!WORDS.includes(a)||!WORDS.includes(b)||a.length!==b.length){el('custom-error').textContent='Choose two known words of the same length (3 or 4 letters).';return;}el('custom-error').textContent='';newPuzzle(a,b);if(!result.path)message('These words have no connecting route in this vocabulary. Choose another pair.');});
+el('step').onclick=step;el('reset-search').onclick=resetSearch;
+function play(){pause();if(result.snapshots[index].done)return;el('play').textContent='Ⅱ Pause';timer=setInterval(step,Number(el<HTMLSelectElement>('speed').value));}
+el('play').onclick=()=>timer!==null?pause():play();el('speed').onchange=()=>{if(timer!==null)play();};
+mountGraph(el('graph'),()=>({start,goal,words:WORDS.filter(w=>w.length===start.length),player,solution,snapshot:result.snapshots[index],selected}),word=>{selected=word;const neighbors=WORDS.filter(w=>adjacent(word,w));el('inspector').textContent=`${word.toUpperCase()} connects to: ${neighbors.map(w=>w.toUpperCase()).join(', ')}.`;});
+newPuzzle(start,goal);
