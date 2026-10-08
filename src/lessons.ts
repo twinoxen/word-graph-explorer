@@ -8,7 +8,6 @@ export const lessonMarkup=`
   <div class="lesson-tabs chapter-tabs" role="tablist" aria-label="Engineering chapters">${CHAPTERS.map((chapter,i)=>`<button id="chapter-${i}" class="lesson-tab" role="tab" aria-selected="${i===0}" aria-controls="engineering-panel" tabindex="${i===0?0:-1}"><span class="lesson-number">0${i+1}</span><span><strong>${chapter.title}</strong><small>${chapter.description}</small></span></button>`).join('')}</div>
   <section id="engineering-panel" role="tabpanel" aria-labelledby="chapter-0"><nav id="lesson-outline" class="lesson-outline" aria-label="Lessons in this chapter"></nav><div id="engineering-slide"></div></section>
   <div class="lesson-navigation"><button id="previous-lesson" class="secondary">Previous lesson</button><span id="lesson-position"></span><button id="next-lesson" class="primary">Next lesson</button></div>
-  <p class="lesson-reference">This course builds on <a href="https://www.youtube.com/watch?v=cS-198wtfj0" target="_blank" rel="noreferrer">AlgoMonster’s explanation of DFS and BFS</a> and adapts the ideas to this game’s implementation.</p>
 </section>`;
 
 export function mountLessons(getPuzzle:()=>{start:string;goal:string;player:string[];path:string[]|null}){

@@ -306,7 +306,6 @@ footer{margin-top:55px;padding:22px 4px;border-top:1px solid #304239;color:#90a6
 .current-state{font-weight:700}
 .lesson-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}
 #lesson-position{font-size:11px;color:#a8bf9a;text-align:center}
-.lesson-reference{color:#82967e;font-size:10px;line-height:1.8;margin:22px 0 0}.lesson-reference a{text-decoration:underline}
 .engineering-lessons .animation-caption{min-height:64px;font-size:12px;line-height:1.8;text-align:left}
 @media(max-width:1000px){.engineering-lessons .lesson-copy{padding:28px}.engineering-experiment{padding:24px 18px}.lesson-outline{grid-template-columns:repeat(2,minmax(0,1fr))}.engineering-lessons .lesson-tab{padding:12px;gap:8px}}
 @media(max-width:760px){.engineering-lessons .chapter-tabs{grid-template-columns:1fr}.engineering-lessons .lesson-panel{grid-template-columns:1fr}.engineering-lessons .lesson-copy{padding:26px 22px}.engineering-lessons .lesson-copy h3{font-size:26px}.engineering-experiment{padding:26px 22px;border-left:0}.chapter-tabs .lesson-tab small{font-size:10px}.lesson-navigation button{font-size:10px;padding:11px 10px}.outline-slide{font-size:10px;padding:10px}.code-walkthrough li{font-size:10px}.concept-graph{max-height:380px}}
