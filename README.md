@@ -45,3 +45,14 @@ Import `twinoxen/word-graph-explorer` in Vercel. Select Vite, leave the root dir
 - `tests/engine.test.ts`: graph and game rule checks.
 
 Every legal move has equal cost. BFS processes all nodes at distance k before distance k+1, so the first goal reached has the fewest transformations. This small implementation scans the vocabulary to find neighbors: O(V²L) search work, where L is word length. Search snapshots add O(V²) storage in the worst case. Larger dictionaries should use wildcard neighbor indexing and incremental snapshots.
+
+## Interaction feedback
+
+Invalid moves are checked while typing, with a red field and explanation. Submission adds a notification and a brief shake. Valid moves animate into the ladder. Winning displays a persistent celebration card, move count versus the shortest route, confetti, and a next-challenge button. Undo and restart clear celebration state. Active player, solution and BFS frontier edges use marching dashes; current nodes pulse and the graph follows your progress. The operating system's reduced-motion preference removes confetti, dashes in motion, pulses and UI motion while retaining all text feedback.
+
+Browser regression tests:
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+```

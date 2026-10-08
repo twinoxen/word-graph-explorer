@@ -1,7 +1,10 @@
 import p5 from 'p5';
+import {edgeDirection} from './path-motion';
 import {adjacent,component,type Snapshot} from './engine';
 export interface GraphState {start:string;goal:string;words:string[];player:string[];solution:string[];snapshot:Snapshot;selected:string|null}
 export function mountGraph(host:HTMLElement,getState:()=>GraphState,onSelect:(word:string)=>void){
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');
+  let focusedWord:string|null=null;
   let positions=new Map<string,{x:number;y:number}>();
   const sketch=new p5(p=>{
     p.setup=()=>{const canvas=p.createCanvas(Math.max(host.clientWidth,600),620);canvas.attribute('aria-label','Word graph. Use the game and search panels for the text equivalent.');p.textFont('monospace');p.frameRate(20);};
@@ -19,6 +22,14 @@ export function mountGraph(host:HTMLElement,getState:()=>GraphState,onSelect:(wo
         const a=positions.get(visible[i])!,b=positions.get(visible[j])!;const player=pathEdge(visible[i],visible[j],state.player),optimal=pathEdge(visible[i],visible[j],state.solution);
         p.stroke(optimal?'#f5c36a':player?'#65dfb5':'#29364b');p.strokeWeight(optimal&&player?6:optimal||player?3:1);p.line(a.x,a.y,b.x,b.y);
         if(optimal&&player){p.stroke('#65dfb5');p.strokeWeight(2);p.line(a.x,a.y,b.x,b.y);}
+        const exploring=(visible[i]===state.snapshot.current&&state.snapshot.queue.includes(visible[j]))||(visible[j]===state.snapshot.current&&state.snapshot.queue.includes(visible[i]));
+        if(player||optimal||exploring){
+          const route=player?state.player:optimal?state.solution:[];
+          const forward=exploring?visible[i]===state.snapshot.current:edgeDirection(visible[i],visible[j],route)>0;
+          const context=p.drawingContext as CanvasRenderingContext2D;
+          context.save();context.setLineDash([5,10]);context.lineDashOffset=motion.matches?0:(p.millis()/65)*(forward?-1:1);
+          p.stroke(player?'#bdffe7':optimal?'#fff0c6':'#b6a8ff');p.strokeWeight(player&&optimal?2:2.5);p.line(a.x,a.y,b.x,b.y);context.restore();
+        }
       }
       for(const word of visible){const pos=positions.get(word)!;let fill='#1a263b',stroke='#3d4c64',color='#aebbd1';
         if(state.snapshot.visited.includes(word)){fill='#25374e';color='#e1e9f4';}
@@ -26,9 +37,15 @@ export function mountGraph(host:HTMLElement,getState:()=>GraphState,onSelect:(wo
         if(state.player.includes(word)){fill='#143a36';stroke='#65dfb5';color='#9bf4d2';}
         if(state.solution.includes(word)){fill=state.player.includes(word)?'#143a36':'#443724';stroke='#f5c36a';color=state.player.includes(word)?'#9bf4d2':'#ffda94';}
         if(state.snapshot.current===word||state.selected===word){stroke='#ffffff';p.strokeWeight(3);}else p.strokeWeight(1.5);
-        p.fill(fill);p.stroke(stroke);p.rectMode(p.CENTER);p.rect(pos.x,pos.y,64,28,9);p.noStroke();p.fill(color);p.textSize(12);p.textAlign(p.CENTER,p.CENTER);p.text(word.toUpperCase(),pos.x,pos.y);
+        if(word===state.player.at(-1)||word===state.snapshot.current){
+          const glow=motion.matches?4:4+Math.sin(p.millis()/250)*3;
+          p.noFill();p.stroke(word===state.goal?'#f5c36a55':'#65dfb555');p.strokeWeight(2);p.rectMode(p.CENTER);p.rect(pos.x,pos.y,72+glow,36+glow,12);
+        }
+        p.fill(fill);p.stroke(stroke);p.strokeWeight(state.snapshot.current===word||state.selected===word?3:1.5);p.rectMode(p.CENTER);p.rect(pos.x,pos.y,64,28,9);p.noStroke();p.fill(color);p.textSize(12);p.textAlign(p.CENTER,p.CENTER);p.text(word.toUpperCase(),pos.x,pos.y);
         if(word===state.start||word===state.goal){p.fill('#8495af');p.textSize(8);p.text(word===state.goal?'GOAL':'START',pos.x,pos.y+21);}
       }
+      const focus=state.snapshot.current||state.player.at(-1)!;
+      if(focus!==focusedWord){focusedWord=focus;const pos=positions.get(focus);if(pos)host.scrollTo({left:Math.max(0,pos.x-host.clientWidth/2),top:Math.max(0,pos.y-host.clientHeight/2),behavior:motion.matches?'instant':'smooth'});}
       host.dataset.count=`Showing ${visible.length} of ${all.length} connected words. Scroll to explore. All words in the selected connected component are shown.`;
     };
     p.mouseClicked=()=>{for(const [word,pos]of positions)if(Math.abs(p.mouseX-pos.x)<32&&Math.abs(p.mouseY-pos.y)<14){onSelect(word);break;}};

@@ -1,1 +1,22 @@
-{"name":"word-graph-explorer","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"tsc --noEmit && vite build","preview":"vite preview --host 0.0.0.0","test":"node --experimental-strip-types --test tests/*.test.ts"},"dependencies":{"p5":"^2.0.0"},"devDependencies":{"@types/p5":"^1.7.6","typescript":"^5.9.0","vite":"^8.0.0"}}
+{
+  "name": "word-graph-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "p5": "^2.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/p5": "^1.7.6",
+    "typescript": "^5.9.0",
+    "vite": "^8.0.0"
+  }
+}
