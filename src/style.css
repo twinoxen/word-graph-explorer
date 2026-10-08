@@ -204,3 +204,42 @@ footer{margin-top:55px;padding:22px 4px;border-top:1px solid #304239;color:#90a6
 @keyframes queue-in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:760px){header nav{gap:12px}header nav a[href="#search-lab"]{display:none}.lesson-tab{align-items:flex-start}.lesson-tab strong{font-size:10px}.lesson-tab small{font-size:8px}.animation-controls{gap:7px}.animation-controls button{font-size:10px;padding:11px 12px}.animation-caption{font-size:12px;min-height:88px}.parent-trace strong>span{padding:3px 1px}#search-lab{margin-top:40px}.learning{margin-top:48px}}
 @media(prefers-reduced-motion:reduce){#animated-edge,.changed-letter,.queue-chip-enter,.trace-current{animation:none!important}.patterns code.active-pattern{transform:none}}
+
+/* Word tiles align every accepted rung with the next editable row. */
+.ladder-column{--word-length:3;--tile-size:56px;--tile-gap:8px;--word-width:calc(var(--word-length)*var(--tile-size) + (var(--word-length) - 1)*var(--tile-gap))}
+#game .word-tiles{display:grid;grid-template-columns:repeat(var(--word-length),var(--tile-size));gap:var(--tile-gap);width:var(--word-width)}
+#game .letter-tile{width:var(--tile-size);height:var(--tile-size);display:grid;place-items:center;flex-shrink:0;border:1.5px solid #68815a;border-radius:4px;background:#24392d;color:#e0f0cf;font-family:Manrope,system-ui,sans-serif;font-size:28px;font-weight:800;letter-spacing:0;line-height:1;transition:border-color .15s,background .15s,box-shadow .15s}
+#ladder{display:flex;flex-direction:column;flex-wrap:nowrap;align-items:center;gap:10px;max-height:280px;min-height:var(--tile-size);padding:0;margin:16px 0 18px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none}
+#ladder::-webkit-scrollbar{display:none}
+#ladder li{width:100%;height:var(--tile-size);flex:0 0 var(--tile-size);padding:0;display:flex;justify-content:center;align-items:center;background:none;border:0;border-radius:0;gap:0;position:relative;overflow:visible}
+#ladder .rung-number{position:absolute;left:5px;font-size:9px;color:#92a88a;font-family:monospace;letter-spacing:1px}
+#ladder .rung-status{position:absolute;right:3px;font-size:7px;letter-spacing:.7px;color:#c5e5a6;margin:0}
+#game .word-entry{position:relative;width:var(--word-width);height:var(--tile-size);flex:0 0 var(--word-width)}
+#game .word-entry input{position:absolute;inset:0;z-index:2;width:100%;height:100%;padding:0;margin:0;border:0;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:transparent;box-shadow:none;border-radius:4px;font-size:16px;letter-spacing:0;text-transform:none;cursor:text}
+#game .word-entry input::selection{background:transparent;color:transparent}
+#game .word-entry input:focus-visible{outline:none}
+#game .word-entry input:disabled{cursor:default}
+#letter-slots{pointer-events:none}
+#game #letter-slots .letter-tile{background:#0f1e1c;border-color:#66825b}
+#game #letter-slots .letter-tile.filled{background:#1e3428}
+#game #letter-slots .letter-tile.active-letter{border-color:#c6efa0;box-shadow:0 0 0 3px #b9ed8326}
+#game #letter-slots .letter-tile.selected-letter{background:#3b5730;border-color:#d9ffb4}
+#game .word-entry input[aria-invalid="true"]+#letter-slots .letter-tile{border-color:#ee8296;background:#3a2228}
+#game .word-entry input:disabled+#letter-slots{opacity:.4}
+#game #move-form .field-label{text-align:center;margin:0 0 12px}
+#game #move-form .input-row{position:relative;display:flex;align-items:center;justify-content:center;gap:0;min-height:var(--tile-size)}
+#game #submit-move{position:absolute;left:calc(50% + var(--word-width)/2 + 16px);padding:12px 14px;font-size:12px}
+.entry-instructions{color:#a8bca4;font-size:10px;text-align:center;line-height:1.7;margin:14px 0 0}
+#game .ladder-column .message{min-height:44px;text-align:center;margin:8px 0 12px}
+.ladder-column .actions{justify-content:center}
+.ladder-column .small-actions{justify-content:center}
+.rung-enter{animation:rung-rise .35s cubic-bezier(.2,.7,.3,1)}
+@keyframes rung-rise{from{opacity:.25;transform:translateY(calc(var(--tile-size) + 10px))}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1000px) and (min-width:761px){.ladder-column{--tile-size:46px;--tile-gap:6px}#game #submit-move{position:static;margin-top:14px}#game #move-form .input-row{flex-direction:column}#game .word-entry{flex-basis:var(--tile-size)}}
+@media(max-width:760px){.ladder-column{--tile-size:44px;--tile-gap:6px}#game .letter-tile{font-size:23px}#game #move-form .input-row{flex-direction:column}#game .word-entry{flex-basis:var(--tile-size)}#game #submit-move{position:static;margin-top:15px;font-size:12px;padding:11px 24px}#ladder{max-height:240px;margin-top:14px}#ladder .rung-number{font-size:8px;left:0}#ladder .rung-status{font-size:6px;right:0}.entry-instructions{font-size:9px;margin-top:12px}#game #move-form .field-label{font-size:9px;margin-bottom:9px}}
+@media(prefers-reduced-motion:reduce){.rung-enter{animation:none}}
+
+#game #letter-slots{position:absolute;inset:0}
+@media(max-width:360px){.ladder-column{--tile-size:40px;--tile-gap:5px}}
+
+@media(max-width:760px){.endpoints{gap:clamp(12px,5vw,24px)}.endpoints strong{font-size:clamp(24px,7vw,30px);letter-spacing:2px}}

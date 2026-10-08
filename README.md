@@ -27,6 +27,7 @@ The scaling module shows operation counts rather than timing measurements. Wildc
 ## Features
 
 - Five solvable three- and four-letter puzzles and custom endpoints.
+- Square letter tiles show the seed and each accepted rung above a fresh input row. Clicking a tile selects its letter for replacement; typing, deletion, selection and paste use a native textbox.
 - Case-insensitive move validation against a bundled, curated vocabulary.
 - Undo, restart, hint from your current word, and reveal the shortest route from the start.
 - p5.js graph with the full connected component; scroll both directions to explore larger graphs.
@@ -54,6 +55,7 @@ Import `twinoxen/word-graph-explorer` in Vercel. Select Vite, leave the root dir
 - `src/engine.ts`: pure adjacency, move validation, FIFO BFS snapshots and route reconstruction.
 - `src/data.ts`: curated vocabulary and puzzle presets.
 - `src/main.ts`: game state, DOM and algorithm playback controls.
+- `src/letter-input.ts`: native keyboard input with square letter slots and selection feedback.
 - `src/graph.ts`: p5 rendering and node inspection.
 - `src/lessons.ts`: independent interactive teaching examples and full-sentence explanations.
 - `src/lesson-animation.ts`: play, pause, step, reset and reduced-motion behavior for teaching animations.

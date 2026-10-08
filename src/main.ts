@@ -3,6 +3,7 @@ import {WORDS,PUZZLES} from './data';
 import {adjacent,normalize,search,shortestPath,validateMove,type SearchResult} from './engine';
 import {createFeedback,type Tone} from './feedback';
 import {lessonMarkup,mountLessons} from './lessons';
+import {letterInputMarkup,mountLetterInput} from './letter-input';
 const app=document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML=`
 <header><a class="brand" href="./"><span class="brand-icon">w.</span> word graph <b>explorer</b></a><nav aria-label="Main"><a href="#game">Play</a><a href="#search-lab">Connections</a><a href="#learn">Explore the ideas</a><a href="https://github.com/twinoxen/word-graph-explorer" target="_blank" rel="noreferrer">Source ↗</a></nav></header>
@@ -12,7 +13,7 @@ app.innerHTML=`
 <form id="custom" hidden><div class="custom-fields"><label>Start<input id="custom-start" maxlength="4" placeholder="COLD" required></label><label>Goal<input id="custom-goal" maxlength="4" placeholder="WARM" required></label></div><button class="secondary">Set puzzle</button><p id="custom-error" role="status"></p></form>
 <div class="endpoints"><div><span class="field-label">START</span><strong id="start"></strong></div><span class="endpoint-arrow">→</span><div><span class="field-label">GOAL</span><strong id="goal"></strong></div></div>
 <p class="mobile-rule">Change one letter. Every step must be a word in our vocabulary.</p><div class="tip"><span>HOW TO PLAY</span><p>Change <b>exactly one letter</b> each turn. Keep the word length the same. Every step must be in our curated vocabulary.</p></div><div class="challenge-footnote">A real word may be missing because this teaching dictionary includes only selected English words.</div></div><div class="ladder-column"><div class="row"><h2>Your ladder</h2><span id="moves" class="muted"></span></div><ol id="ladder"></ol>
-<form id="move-form"><label class="field-label" for="next">Your next word</label><div class="input-row"><input id="next" autocomplete="off" spellcheck="false" placeholder="Your next word…" aria-describedby="message"><button id="submit-move" class="primary" aria-label="Submit word">Connect →</button></div></form><p id="message" class="message" role="status" aria-live="polite"></p>
+<form id="move-form"><label class="field-label" for="next">Your next word</label><div class="input-row">${letterInputMarkup}<button id="submit-move" class="primary" aria-label="Submit word">Connect →</button></div><p id="entry-instructions" class="entry-instructions">Type a letter in each square, and press Enter to submit.</p></form><p id="message" class="message" role="status" aria-live="polite"></p>
 <section id="victory" class="victory" hidden role="status"><span class="victory-icon" aria-hidden="true">✦</span><h2>Ladder complete!</h2><p id="victory-text"></p><button id="next-challenge" class="primary">Next challenge →</button></section>
 <div class="actions"><button id="hint" class="secondary">✧ Next-word hint</button><button id="reveal" class="secondary">Reveal shortest path</button></div><div id="answer" hidden class="answer"></div><div class="small-actions"><button id="undo">← Undo move</button><button id="restart">↻ Start over</button></div>
 </div></div><div class="game-bottom"><span><i class="dot green"></i> Every move opens a possibility.</span><a href="#learn">Curious how it works? Explore below ↓</a></div></section>
@@ -26,14 +27,23 @@ const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById
 let start='cat',goal='dog',player=[start],solution:string[]=[],result:SearchResult=search(start,goal,WORDS),index=0,timer:ReturnType<typeof setInterval>|null=null,selected:string|null=null;
 function pause(){if(timer!==null)clearInterval(timer);timer=null;el('play').textContent='▶ Play BFS';}
 const lessons=mountLessons(()=>({start,goal,player,path:result.path}));
+const letterInput=mountLetterInput(el<HTMLInputElement>('next'),el('letter-slots'));
 const feedback=createFeedback(el('message'),el<HTMLInputElement>('next'),el('move-form'),el('toast'),el('confetti'));
 function message(text:string,tone:Tone='info',notify=false){feedback.show(text,tone,notify);}
 function render(){
   el('start').textContent=start.toUpperCase();el('goal').textContent=goal.toUpperCase();el('moves').textContent=`${player.length-1} moves`;
-  el('ladder').replaceChildren(...player.map((word,i)=>{const li=document.createElement('li');const count=document.createElement('span');count.textContent=String(i).padStart(2,'0');const text=document.createElement('strong');text.textContent=word.toUpperCase();li.append(count,text);if(i===player.length-1){const tag=document.createElement('em');tag.textContent=word===goal?'FINISHED':'CURRENT';li.append(tag);}return li;}));
+  el('ladder').replaceChildren(...player.map((word,i)=>{
+    const li=document.createElement('li');li.className='ladder-rung';li.setAttribute('aria-label',`Step ${i}: ${word.toUpperCase()}${i===player.length-1?', current word':''}`);
+    const count=document.createElement('span');count.className='rung-number';count.setAttribute('aria-hidden','true');count.textContent=String(i).padStart(2,'0');
+    const tiles=document.createElement('div');tiles.className='word-tiles';tiles.setAttribute('aria-hidden','true');
+    tiles.replaceChildren(...[...word].map(letter=>{const tile=document.createElement('span');tile.className='letter-tile';tile.textContent=letter.toUpperCase();return tile;}));
+    li.append(count,tiles);
+    if(i===player.length-1){const tag=document.createElement('em');tag.className='rung-status';tag.setAttribute('aria-hidden','true');tag.textContent=word===goal?'GOAL':i===0?'SEED':'CURRENT';li.append(tag);}
+    return li;
+  }));
   const won=player.at(-1)===goal;el('victory').hidden=!won;el('app').classList.toggle('won',won);(el('submit-move')as HTMLButtonElement).disabled=won;
   if(won){const moves=player.length-1,minimum=result.path?result.path.length-1:null;el('victory-text').textContent=`You connected ${start.toUpperCase()} to ${goal.toUpperCase()} in ${moves} moves. ${moves===minimum?'A shortest path — beautifully done!':`The shortest path takes ${minimum} moves. Try again and see how close you can get!`}`;}
-  (el('next') as HTMLInputElement).disabled=won;(el('hint')as HTMLButtonElement).disabled=won;(el('undo')as HTMLButtonElement).disabled=player.length===1;
+  (el('next') as HTMLInputElement).disabled=won;letterInput.sync();(el('hint')as HTMLButtonElement).disabled=won;(el('undo')as HTMLButtonElement).disabled=player.length===1;
   const snap=result.snapshots[index];el('current').textContent=snap.current?.toUpperCase()||'—';el('visited').textContent=String(snap.visited.length);el('depth').textContent=String(snap.depth);
   el('queue').replaceChildren(...snap.queue.map(w=>{const chip=document.createElement('code');chip.textContent=w.toUpperCase();return chip;}));if(!snap.queue.length)el('queue').textContent='Queue empty';
   (el('step')as HTMLButtonElement).disabled=snap.done;(el('play')as HTMLButtonElement).disabled=snap.done;
@@ -41,11 +51,12 @@ function render(){
   el('graph-note').textContent=el('graph').dataset.count||'Nearby words are shown. Scroll to explore the graph.';
 }
 function resetSearch(){pause();result=search(start,goal,WORDS);index=0;solution=[];el('answer').hidden=true;render();}
-function newPuzzle(a:string,b:string){lessons.puzzleChanged();el('inspector').textContent='Click a word to inspect its neighbors.';feedback.clear();el<HTMLInputElement>('next').value='';pause();start=a;goal=b;player=[start];selected=null;resetSearch();message(start===goal?'Already at the goal — zero moves needed.':'Your first move is waiting.');if(start===goal)(el('next')as HTMLInputElement).disabled=true;}
+function newPuzzle(a:string,b:string){lessons.puzzleChanged();el('inspector').textContent='Click a word to inspect its neighbors.';feedback.clear();el<HTMLInputElement>('next').value='';letterInput.setLength(a.length);pause();start=a;goal=b;player=[start];selected=null;resetSearch();message(start===goal?'Already at the goal — zero moves needed.':'Your first move is waiting.');if(start===goal)(el('next')as HTMLInputElement).disabled=true;}
 function step(){if(index<result.snapshots.length-1)index++;if(result.snapshots[index].done){pause();solution=result.path||[];}render();}
 el('next').addEventListener('input',()=>{
   const input=el<HTMLInputElement>('next');
   if(!input.value.trim()){message('Change one letter to make your next connection.');return;}
+  if(input.value.length<start.length){message(`Fill all ${start.length} squares to complete your next word.`);return;}
   const error=validateMove(player.at(-1)!,input.value,WORDS);
   message(error||'Valid word — press Enter to connect. ',error?'error':'success');
 });
@@ -56,7 +67,8 @@ el('move-form').addEventListener('submit',event=>{
   lessons.playerChanged();const previous=player.at(-1)!;player.push(normalize(input.value));input.value='';
   const won=player.at(-1)===goal;
   message(won?`Ladder complete! You reached ${goal.toUpperCase()} in ${player.length-1} moves.`:`${previous.toUpperCase()} → ${player.at(-1)!.toUpperCase()} — connected!`, 'success',won);
-  render();el('ladder').lastElementChild?.classList.add('move-enter');el('ladder').scrollTop=el('ladder').scrollHeight;
+  render();el('ladder').lastElementChild?.classList.add('rung-enter');el('ladder').scrollTop=el('ladder').scrollHeight;
+  if(!won){input.focus({preventScroll:true});input.setSelectionRange(0,0);letterInput.sync();input.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
   if(won){feedback.celebrate();el('victory').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
 });
 el('hint').onclick=()=>{const path=shortestPath(player.at(-1)!,goal,WORDS);message(path&&path.length>1?`Try ${path[1].toUpperCase()} — ${path.length-1} moves remain on a shortest route.`:'No route to the goal from here in this vocabulary.','hint',true);};
