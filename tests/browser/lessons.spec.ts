@@ -1,84 +1,93 @@
 import {test,expect} from '@playwright/test';
 
 test.beforeEach(async({page})=>{await page.goto('/');});
+async function slide(page:any,index:number){
+  await page.locator(`#chapter-${Math.floor(index/4)}`).click();
+  await page.locator(`[data-slide="${index}"]`).click();
+}
 
-test('learning remains optional while a player completes the game',async({page})=>{
+test('gameplay stays first and twelve lessons expose explanations without a quiz gate',async({page})=>{
   await expect(page.locator('canvas')).toHaveCount(0);
-  const game=await page.locator('#game').boundingBox();
-  const learn=await page.locator('#learn').boundingBox();
-  expect(game!.y+game!.height).toBeLessThanOrEqual(learn!.y);
-  for(const word of ['cot','cog','dog']){
-    await page.locator('#next').fill(word);await page.locator('#next').press('Enter');
-  }
+  for(const word of ['cot','cog','dog']){await page.locator('#next').fill(word);await page.locator('#next').press('Enter');}
   await expect(page.locator('#victory')).toBeVisible();
-  await expect(page.locator('#lesson-progress')).toContainText('0 of 4');
+  await expect(page.locator('#lesson-progress')).toHaveText('0 of 12 understood');
+  for(let i=0;i<12;i++){
+    await slide(page,i);
+    await expect(page.locator('#lesson-position')).toHaveText(`Lesson ${i+1} of 12`);
+    await expect(page.locator('.lesson-copy>p').first()).toBeVisible();
+    await expect(page.locator('.engineering-decision')).toBeVisible();
+    await expect(page.locator('#concept-body')).not.toBeEmpty();
+  }
+  await expect(page.locator('#next-lesson')).toBeDisabled();
 });
 
-test('adjacency lesson gives feedback for both predictions without changing the game',async({page})=>{
-  await page.getByRole('button',{name:'DOG',exact:true}).click();
-  await expect(page.locator('#edges-feedback')).toContainText('three');
-  await expect(page.locator('#edges-feedback')).toHaveAttribute('data-correct','false');
-  await page.getByRole('button',{name:'COT',exact:true}).click();
-  await expect(page.locator('#edges-feedback')).toHaveAttribute('data-correct','true');
-  await expect(page.locator('#edges-explanation')).toBeVisible();
+test('predictions explain misconceptions and persist across navigation without changing the ladder',async({page})=>{
+  await slide(page,1);
+  await page.locator('[data-choice="1"]').click();
+  await expect(page.locator('#prediction-feedback')).toContainText('zero');
+  await expect(page.locator('#prediction-feedback')).toHaveAttribute('data-correct','false');
+  await page.locator('[data-choice="0"]').click();
+  await expect(page.locator('#prediction-feedback')).toHaveAttribute('data-correct','true');
+  await expect(page.locator('#lesson-progress')).toHaveText('1 of 12 understood');
+  await slide(page,7);await slide(page,1);
+  await expect(page.locator('[data-choice="0"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#prediction-feedback')).toContainText('middle letter');
   await expect(page.locator('#ladder li')).toHaveCount(1);
-  await expect(page.locator('#lesson-progress')).toContainText('1 of 4');
 });
 
-test('FIFO prediction gives feedback without affecting the player',async({page})=>{
-  await page.getByRole('tab',{name:/BFS explores/}).click();
-  await page.getByRole('button',{name:'COT',exact:true}).click();
-  await expect(page.locator('#bfs-feedback')).toHaveAttribute('data-correct','false');
-  await page.getByRole('button',{name:'BAT',exact:true}).click();
-  await expect(page.locator('#bfs-feedback')).toHaveAttribute('data-correct','true');
-  await expect(page.locator('#bfs-explanation')).toBeVisible();
-  await expect(page.locator('#ladder li')).toHaveCount(1);
-});
-
-test('shortest-path lesson explains parents and compares the active puzzle only on request',async({page})=>{
-  await page.getByRole('tab',{name:/Parents recover/}).click();
-  await expect(page.locator('#lesson-solution')).toBeHidden();
-  await page.getByRole('button',{name:'Follow the recorded parents'}).click();
-  await expect(page.locator('#parents-feedback')).toHaveAttribute('data-correct','true');
-  await expect(page.locator('#parent-trace')).toContainText('DOG ← COG ← COT ← CAT');
-  await page.getByRole('button',{name:'Compare with my puzzle'}).click();
-  await expect(page.locator('#lesson-solution')).toContainText('3 moves');
-  await page.locator('#puzzle').selectOption('1');
-  await expect(page.locator('#lesson-solution')).toBeHidden();
-});
-
-test('scaling lesson distinguishes lookup work from building an index',async({page})=>{
-  await page.getByRole('tab',{name:/An index reduces/}).click();
-  await page.locator('#dictionary-size').fill('10000');
+test('validation, representation and index experiments respond to learner input',async({page})=>{
+  await slide(page,1);
+  await page.locator('#validation-word').fill('DOG');
+  await expect(page.locator('#validation-announcement')).toContainText('exactly one letter');
+  await expect(page.locator('.validation-result')).toContainText('exactly one letter');
+  await page.locator('#concept-stage').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1400);
+  await expect(page.locator('.validation-result')).toContainText('exactly one letter');
+  await page.locator('#validation-word').fill('COT');
+  await expect(page.locator('.validation-result')).toContainText('every rule passes');
+  await slide(page,4);
+  await page.locator('#representation').selectOption('set');
+  await expect(page.locator('#concept-body')).toContainText('membership queries');
+  await page.locator('#representation').selectOption('list');
+  await expect(page.locator('.adjacency-list')).toContainText('CAT, COG, DOT');
+  await slide(page,7);await page.locator('#dictionary-size').fill('10000');
   await expect(page.locator('#scan-count')).toHaveText('40,000');
   await expect(page.locator('#pattern-count')).toHaveText('4');
-  await page.getByRole('button',{name:'Reuse a wildcard index'}).click();
-  await expect(page.locator('#scale-feedback')).toHaveAttribute('data-correct','true');
-  await expect(page.locator('#scale-explanation')).toContainText('build');
-  await page.getByRole('tab',{name:/Words form a graph/}).click();
-  await expect(page.locator('#lesson-edges')).toBeVisible();
+  await expect(page.locator('#concept-body')).toContainText('excludes key creation');
 });
 
-test('keyboard navigation changes lessons while the map keeps its own playback state',async({page})=>{
-  await page.locator('#tab-0').focus();await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#tab-1')).toBeFocused();
-  await expect(page.locator('#lesson-bfs')).toBeVisible();
+test('route recovery covers contracts and reveals gameplay only on explicit comparison',async({page})=>{
+  await slide(page,11);
+  await expect(page.locator('#lesson-solution')).toBeHidden();
+  await page.locator('#solver-case').selectOption('same');
+  await expect(page.locator('#concept-body')).toContainText('zero moves');
+  await page.locator('#solver-case').selectOption('disconnected');
+  await expect(page.locator('#concept-caption')).toContainText('returns no route');
+  await page.locator('#compare-puzzle').click();
+  await expect(page.locator('#lesson-solution')).toContainText('3 moves');
+  await page.locator('#next').fill('cot');await page.locator('#next').press('Enter');
+  await expect(page.locator('#lesson-solution')).toBeHidden();
+  await page.locator('#compare-puzzle').click();await page.locator('#puzzle').selectOption('1');
+  await expect(page.locator('#lesson-solution')).toBeHidden();
+});
+
+test('chapter keyboard navigation and sequential lessons leave map playback independent',async({page})=>{
+  await page.locator('#chapter-0').focus();await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#chapter-1')).toBeFocused();
+  await expect(page.locator('#lesson-position')).toHaveText('Lesson 5 of 12');
+  await page.keyboard.press('End');await expect(page.locator('#chapter-2')).toBeFocused();
+  await page.locator('#previous-lesson').click();await expect(page.locator('#lesson-position')).toHaveText('Lesson 8 of 12');
+  await page.locator('#next-lesson').click();await expect(page.locator('#lesson-position')).toHaveText('Lesson 9 of 12');
   await page.locator('#speed').selectOption('1000');await page.locator('#play').click();
-  await expect(page.locator('#play')).toContainText('Pause');
-  await page.getByRole('tab',{name:/Parents recover/}).click();
-  await expect(page.locator('#play')).toContainText('Pause');
+  await page.locator('#chapter-0').click();await expect(page.locator('#play')).toContainText('Pause');
   await page.locator('#play').click();
-  await expect(page.locator('#play')).toContainText('Play BFS');
 });
 
-test('mobile lessons keep their controls usable without page overflow',async({page})=>{
+test('all twelve lessons stay within a narrow mobile viewport',async({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await expect(page.locator('#next')).toBeInViewport();
-  for(const name of [/Words form a graph/,/BFS explores/,/Parents recover/,/An index reduces/]){
-    await page.getByRole('tab',{name}).click();
+  for(let i=0;i<12;i++){
+    await slide(page,i);await page.locator('#concept-stage').scrollIntoViewIfNeeded();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await expect(page.locator('#concept-caption')).not.toBeEmpty();
   }
-  await page.getByRole('button',{name:'Reuse a wildcard index'}).click();
-  await expect(page.locator('#scale-explanation')).toBeVisible();
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
