@@ -9,6 +9,7 @@ export function mountGraph(host:HTMLElement,getState:()=>GraphState,onSelect:(wo
   const sketch=new p5(p=>{
     p.setup=()=>{const canvas=p.createCanvas(Math.max(host.clientWidth,600),620);canvas.attribute('aria-label','Word graph. Use the game and search panels for the text equivalent.');p.textFont('monospace');p.frameRate(20);};
     p.draw=()=>{
+      if(host.offsetParent===null)return;
       const state=getState(),all=component(state.start,state.words),depth=new Map([[state.start,0]]);
       for(const word of all)for(const next of all)if(!depth.has(next)&&adjacent(word,next))depth.set(next,depth.get(word)!+1);
       const visible=all;

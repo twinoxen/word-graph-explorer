@@ -2,7 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 import {createHash} from 'node:crypto';
 async function fingerprint(page:Page){return createHash('sha256').update(await page.locator('canvas').evaluate((canvas:HTMLCanvasElement)=>canvas.toDataURL())).digest('hex');}
 async function move(page:Page,word:string){await page.locator('#next').fill(word);await page.locator('#next').press('Enter');}
-test.beforeEach(async({page})=>{await page.goto('/');await expect(page.locator('canvas')).toBeVisible();});
+test.beforeEach(async({page})=>{await page.goto('/');await expect(page.locator('#next')).toBeEnabled();});
 test('invalid changes show live errors and submission feedback',async({page})=>{
   await page.locator('#next').fill('dog');
   await expect(page.locator('#next')).toHaveAttribute('aria-invalid','true');
@@ -34,6 +34,8 @@ test('winning celebrates and undo clears the victory state',async({page})=>{
   await expect(page.locator('#message')).not.toHaveAttribute('data-tone','error');
 });
 test('active connectors animate and reduced motion keeps them still',async({page})=>{
+  await page.getByRole('tab',{name:/Search in rings/}).click();
+  await expect(page.locator('canvas')).toBeVisible();
   await move(page,'cot');
   const before=await fingerprint(page);
   await expect.poll(()=>fingerprint(page)).not.toBe(before);

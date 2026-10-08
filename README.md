@@ -1,6 +1,6 @@
 # Word Graph Explorer
 
-A playable word ladder beside an interactive graph of valid transformations. Change one letter per move to get from the starting word to the goal. Watch breadth-first search explore the same graph and find a route with the fewest moves.
+A word ladder game with optional interactive lessons underneath. Change one letter per move to get from the starting word to the goal. Watch breadth-first search explore the same graph and find a route with the fewest moves.
 
 ## Run locally
 
@@ -10,6 +10,19 @@ Requires Node.js 24 or newer.
 npm ci
 npm run dev
 ```
+
+## Play first, explore afterward
+
+The game leads the page: choose a challenge, change one letter per move, and build a ladder to the goal. The learning section underneath is optional and has four independent modules:
+
+1. **Words become a graph:** predict a legal connection, then explore nodes and edges.
+2. **Search in rings:** predict FIFO order and step through a six-word queue. The full graph and BFS playback for the active puzzle live here.
+3. **Shortest route:** follow recorded parents backward, reverse the route, and optionally compare it with the active puzzle.
+4. **Scale it up:** adjust dictionary size to compare character-check bounds with indexed bucket lookups. Explain indexing costs, candidate processing, search complexity and snapshot storage.
+
+Each module gives feedback on predictions and reveals an explanation after a correct answer. Lesson examples do not modify the game. The comparison explicitly reveals the puzzle solution and clears on a new puzzle or move. Progress lasts for the current page session. Tabs support arrow keys, Home and End. Graph code loads only when the search lesson is opened, and drawing pauses when hidden.
+
+The scaling module shows operation counts rather than timing measurements. Wildcard indexing is a proposed optimization; the actual game still scans the curated vocabulary.
 
 ## Features
 
