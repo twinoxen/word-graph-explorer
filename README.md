@@ -1,6 +1,6 @@
 # Word Graph Explorer
 
-A playable word ladder beside an interactive graph of valid transformations. Change one letter per move to get from the starting word to the goal. Watch breadth-first search explore the same graph and find a route with the fewest moves.
+A word ladder game with optional interactive lessons underneath. Change one letter per move to get from the starting word to the goal. Watch breadth-first search explore the same graph and find a route with the fewest moves.
 
 ## Run locally
 
@@ -11,9 +11,23 @@ npm ci
 npm run dev
 ```
 
+## Play first, explore afterward
+
+The game leads the page: choose a challenge, change one letter per move, and build a ladder to the goal. An independent connection map follows the game, with its own BFS playback controls. The optional learning section comes after the map and has four independent modules:
+
+1. **Words become a graph:** predict a legal connection, then explore nodes and edges.
+2. **Search in rings:** predict FIFO order and watch a six-word queue. The search animation and queue walkthrough use an independent teaching example.
+3. **Shortest route:** follow recorded parents backward, reverse the route, and optionally compare it with the active puzzle.
+4. **Scale it up:** adjust dictionary size to compare character-check bounds with indexed bucket lookups. Explain indexing costs, candidate processing, search complexity and snapshot storage.
+
+Each module gives feedback on predictions and reveals an explanation after a correct answer. Lesson examples do not modify the game. The comparison explicitly reveals the puzzle solution and clears on a new puzzle or move. Progress lasts for the current page session. Tabs support arrow keys, Home and End. Graph code loads when the map approaches the viewport. Lesson selection does not hide the map or control its playback.
+
+The scaling module shows operation counts rather than timing measurements. Wildcard indexing is a proposed optimization; the actual game still scans the curated vocabulary.
+
 ## Features
 
 - Five solvable three- and four-letter puzzles and custom endpoints.
+- Square letter tiles show the seed and each accepted rung above a fresh input row. Clicking a tile selects its letter for replacement; typing, deletion, selection and paste use a native textbox.
 - Case-insensitive move validation against a bundled, curated vocabulary.
 - Undo, restart, hint from your current word, and reveal the shortest route from the start.
 - p5.js graph with the full connected component; scroll both directions to explore larger graphs.
@@ -41,7 +55,10 @@ Import `twinoxen/word-graph-explorer` in Vercel. Select Vite, leave the root dir
 - `src/engine.ts`: pure adjacency, move validation, FIFO BFS snapshots and route reconstruction.
 - `src/data.ts`: curated vocabulary and puzzle presets.
 - `src/main.ts`: game state, DOM and algorithm playback controls.
+- `src/letter-input.ts`: native keyboard input with square letter slots and selection feedback.
 - `src/graph.ts`: p5 rendering and node inspection.
+- `src/lessons.ts`: independent interactive teaching examples and full-sentence explanations.
+- `src/lesson-animation.ts`: automatic playback, visibility-aware replay and reduced-motion behavior for teaching animations.
 - `tests/engine.test.ts`: graph and game rule checks.
 
 Every legal move has equal cost. BFS processes all nodes at distance k before distance k+1, so the first goal reached has the fewest transformations. This small implementation scans the vocabulary to find neighbors: O(V²L) search work, where L is word length. Search snapshots add O(V²) storage in the worst case. Larger dictionaries should use wildcard neighbor indexing and incremental snapshots.
@@ -56,3 +73,5 @@ Browser regression tests:
 npx playwright install chromium
 npm run test:e2e
 ```
+
+Every explainer slide includes a replayable visual walkthrough and an interactive prediction. Each walkthrough plays automatically when its lesson becomes visible, covering edge creation, FIFO queue traversal, backward parent tracing followed by route reversal, and wildcard bucket lookup followed by candidate deduplication. Switching back to a lesson replays it. Explanatory headings, captions, feedback and paragraphs use complete sentences. Changing slides or hiding the page pauses teaching animations. Reduced-motion visitors see the completed visual without timed playback.
