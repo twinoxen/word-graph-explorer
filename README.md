@@ -13,16 +13,19 @@ npm run dev
 
 ## Play first, explore afterward
 
-The game leads the page: choose a challenge, change one letter per move, and build a ladder to the goal. An independent connection map follows the game, with its own BFS playback controls. The optional learning section comes after the map and has four independent modules:
+The game leads the page, followed by an independent connection map and an optional engineering course. The course has twelve slides in three chapters:
 
-1. **Words become a graph:** predict a legal connection, then explore nodes and edges.
-2. **Search in rings:** predict FIFO order and watch a six-word queue. The search animation and queue walkthrough use an independent teaching example.
-3. **Shortest route:** follow recorded parents backward, reverse the route, and optionally compare it with the active puzzle.
-4. **Scale it up:** adjust dictionary size to compare character-check bounds with indexed bucket lookups. Explain indexing costs, candidate processing, search complexity and snapshot storage.
+1. **Conceptualize the problem:** distinguish validation, reachability and shortest paths; define adjacency; choose the search state; derive an undirected, unweighted graph with cycles and disconnected vertices.
+2. **Choose the data structures:** compare vocabulary arrays, membership sets and adjacency lists; generate neighbors with scans; assign responsibilities to frontier, discovered set, parents and distances; build and query wildcard buckets.
+3. **Choose and build the algorithm:** compare DFS and BFS on the same graph; follow a BFS operation trace beside pseudocode; explain the distance-order invariant; reconstruct routes and test solver contracts.
 
-Each module gives feedback on predictions and reveals an explanation after a correct answer. Lesson examples do not modify the game. The comparison explicitly reveals the puzzle solution and clears on a new puzzle or move. Progress lasts for the current page session. Tabs support arrow keys, Home and End. Graph code loads when the map approaches the viewport. Lesson selection does not hide the map or control its playback.
+Essential explanations are visible without a quiz gate. Each slide explains what happens, why the design fits, and where its assumptions fail. Predictions provide specific feedback and keep session progress. Experiments include editable character comparisons, representation selection, dictionary-size estimates and route-contract examples.
 
-The scaling module shows operation counts rather than timing measurements. Wildcard indexing is a proposed optimization; the actual game still scans the curated vocabulary.
+All walkthroughs play automatically when visible and replay on lesson selection. Leaving a slide disposes its animation timer and observers. Reduced-motion visitors see the completed visual. Chapter tabs support arrow keys, Home and End; sequential navigation focuses the new heading. Teaching state never changes the game or map. The last slide reveals a gameplay route only through an explicit comparison, and that comparison clears when the puzzle or player route changes.
+
+The teaching trace derives neighbors from the game’s adjacency predicate. Unit checks confirm that its parents, distances, pending queue and route agree with the production solver. The DFS counterexample uses the same vocabulary and alphabetical neighbor order. The comparison reveals returned paths rather than suggesting relative execution speeds.
+
+Wildcard indexing is a proposed optimization. Its explanation includes key creation, bucket memberships and candidate processing; displayed lookup counts are not timing measurements. The actual game continues to scan its curated vocabulary. The course credits AlgoMonster’s “DFS vs BFS, When to Use Which?” video as a conceptual reference.
 
 ## Features
 
@@ -57,7 +60,10 @@ Import `twinoxen/word-graph-explorer` in Vercel. Select Vite, leave the root dir
 - `src/main.ts`: game state, DOM and algorithm playback controls.
 - `src/letter-input.ts`: native keyboard input with square letter slots and selection feedback.
 - `src/graph.ts`: p5 rendering and node inspection.
-- `src/lessons.ts`: independent interactive teaching examples and full-sentence explanations.
+- `src/lessons.ts`: chapter/slide navigation, predictions and explicit puzzle comparison.
+- `src/lesson-content.ts`: twelve authored explanations and misconception feedback.
+- `src/lesson-model.ts`: pure teaching graph, BFS operation traces and DFS counterexample.
+- `src/lesson-visuals.ts`: SVG graphs, synchronized code and data structures, and interactive experiments.
 - `src/lesson-animation.ts`: automatic playback, visibility-aware replay and reduced-motion behavior for teaching animations.
 - `tests/engine.test.ts`: graph and game rule checks.
 
@@ -74,4 +80,4 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Every explainer slide includes a replayable visual walkthrough and an interactive prediction. Each walkthrough plays automatically when its lesson becomes visible, covering edge creation, FIFO queue traversal, backward parent tracing followed by route reversal, and wildcard bucket lookup followed by candidate deduplication. Switching back to a lesson replays it. Explanatory headings, captions, feedback and paragraphs use complete sentences. Changing slides or hiding the page pauses teaching animations. Reduced-motion visitors see the completed visual without timed playback.
+Every slide includes an automatic visual walkthrough and an interactive prediction. Switching back to a slide replays its visual; the essential explanation remains visible throughout. Explanatory headings, captions, feedback and paragraphs use complete sentences. Hiding the page pauses teaching animations. Reduced-motion visitors see completed visuals without timed playback.
