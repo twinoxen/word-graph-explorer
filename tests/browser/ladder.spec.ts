@@ -84,3 +84,14 @@ test('a long ladder scrolls to its latest rung while mobile tiles stay aligned',
   await page.locator('#next').press('Enter');
   await expect(page.locator('#ladder li')).toHaveCount(2);
 });
+
+test('the reported MOLD to MOOD move creates a rung instead of a vocabulary error',async({page})=>{
+  await page.locator('#puzzle').selectOption('1');
+  for(const word of ['mold','mood']){
+    await page.locator('#next').fill(word);await page.locator('#next').press('Enter');
+  }
+  await expect(page.locator('#ladder li')).toHaveCount(3);
+  await expect(page.locator('#ladder li').last().locator('.letter-tile')).toHaveText(['M','O','O','D']);
+  await expect(page.locator('#next')).toHaveValue('');
+  await expect(page.locator('#message')).not.toContainText('not in this curated vocabulary');
+});

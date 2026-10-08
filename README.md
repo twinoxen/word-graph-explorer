@@ -25,7 +25,7 @@ All walkthroughs play automatically when visible and replay on lesson selection.
 
 The teaching trace derives neighbors from the game’s adjacency predicate. Unit checks confirm that its parents, distances, pending queue and route agree with the production solver. The DFS counterexample uses the same vocabulary and alphabetical neighbor order. The comparison reveals returned paths rather than suggesting relative execution speeds.
 
-Wildcard indexing is a proposed optimization. Its explanation includes key creation, bucket memberships and candidate processing; displayed lookup counts are not timing measurements. The actual game continues to scan its curated vocabulary. The course credits AlgoMonster’s “DFS vs BFS, When to Use Which?” video as a conceptual reference.
+Wildcard indexing is a proposed optimization. Its explanation includes key creation, bucket memberships and candidate processing; displayed lookup counts are not timing measurements. The actual game continues to scan its curated vocabulary.
 
 ## Features
 
